@@ -1,50 +1,24 @@
 package main
 
 import (
-	"encoding/json"
-	"log"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
 )
 
-/*
-{
-	"count": 1
-}
-*/
-var counter int = 0
+var counter int
 
 func main() {
-	http.HandleFunc("/api/count", countHandler)
-	err := http.ListenAndServe(":8080", nil)
-	if err != nil {
-		log.Fatalf("Listen and serve error  %v", err)
-
-	}
+	router := gin.Default()
+	router.GET("/api/counter", countHandler)
+	router.Run(":4040")
 }
 
-type countResponse struct {
-	Count int `json:"count"`
-}
+func countHandler(c *gin.Context) {
+	c.JSON(http.StatusOK, gin.H{
+		"count": counter,
+	})
 
-func countHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet {
-		w.WriteHeader(http.StatusMethodNotAllowed)
-		return
-	}
-	count := countResponse{
-		Count: counter,
-	}
 	counter++
-	num, err := json.Marshal(&count)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
 
-	_, err = w.Write(num)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-	return
 }
